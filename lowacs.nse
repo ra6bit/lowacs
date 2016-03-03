@@ -37,6 +37,9 @@ local stdnse = require "stdnse"
 portrule = shortport.http
 
 action = function(host, port)
+  -- Create HTML file for readable output
+	local f = assert(io.open("lowacs.html", "a"))  
+
 	-- Check to see if ssl is enabled, if it is, this will be set to "ssl"
 	local ssl = port.version.service_tunnel
 
@@ -52,15 +55,19 @@ action = function(host, port)
 	end
 
 	-- Execute the shell command wkhtmltoimage-i386 <url> <filename>
-	local cmd = "wkhtmltoimage-i386 -n " .. prefix .. "://" .. host.ip .. ":" .. port.number .. " " .. filename .. " 2> /dev/null   >/dev/null"
+	-- local cmd = "wkhtmltoimage -n " .. prefix .. "://" .. host.ip .. ":" .. port.number .. " " .. filename .. " 2> /dev/null   >/dev/null"
+  local cmd = "cutycapt --url=" .. prefix .. "://" .. host.ip .. " --out=" .. filename
 	
 	local ret = os.execute(cmd)
 
 	-- If the command was successful, print the saved message, otherwise print the fail message
-	local result = "failed (verify wkhtmltoimage-i386 is in your path)"
+	local result = "failed"
 
 	if ret then
 		result = "Saved to " .. filename
+		f:write("<table><tr><td><img src=\"./" .. filename .. "\" width=400 height=300></td>")
+		f:write("<td>" .. host.ip .. ":" .. port.number .. "</td></tr></table>")
+    f:close()
 	end
 
 	-- Return the output message
